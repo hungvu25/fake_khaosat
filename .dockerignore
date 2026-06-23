@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log
+Dockerfile*
+docker-compose*
+.git
+.gitignore
+scratch_*.js
+check_*.js
+run_submission.js
+test_submit.js
+dist

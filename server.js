@@ -82,6 +82,113 @@ const VN_FEEDBACKS = [
   'Chúc nhóm thu thập đủ mẫu khảo sát chất lượng.'
 ];
 
+// Vietnamese name generator helper without accents for email
+function removeVietnameseTones(str) {
+  str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+  str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+  str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+  str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+  str = str.replace(/ù|á|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+  str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+  str = str.replace(/đ/g, "d");
+  str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+  str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+  str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+  str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+  str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+  str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+  str = str.replace(/Đ/g, "D");
+  str = str.replace(/\u0300|\u0301|\u0309|\u0303|\u0323/g, ""); // Huyen sac hoi nga nang
+  str = str.replace(/\u02C6|\u0306|\u031B/g, ""); // Â, Ă, Ơ, Ư
+  return str.toLowerCase().replace(/\s+/g, '');
+}
+
+// Generate a random realistic email based on gender
+function generateRandomEmail(gender = 'random') {
+  const name = generateVietnameseName(gender);
+  const cleanName = removeVietnameseTones(name);
+  const randNum = Math.floor(Math.random() * 900) + 100;
+  const domains = ['gmail.com', 'outlook.com', 'yahoo.com', 'student.ueh.edu.vn', 'gmail.com'];
+  const domain = domains[Math.floor(Math.random() * domains.length)];
+  return `${cleanName}${randNum}@${domain}`;
+}
+
+// Generate realistic Vietnamese phone number
+function generateVietnamesePhone() {
+  const prefixes = ['090', '091', '098', '097', '096', '034', '035', '038', '039', '077', '078', '079', '081', '082', '085'];
+  const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+  const body = Math.floor(1000000 + Math.random() * 9000000).toString().substring(0, 7);
+  return `${prefix}${body}`;
+}
+
+// Generate realistic Student ID (MSSV) for UEH or common VN universities
+function generateStudentId() {
+  const prefix = '31';
+  const yearCode = ['21', '22', '23', '24'][Math.floor(Math.random() * 4)];
+  const majorCode = ['102', '201', '205', '502', '101'][Math.floor(Math.random() * 5)];
+  const randBody = Math.floor(1000 + Math.random() * 9000).toString();
+  return `${prefix}${yearCode}${majorCode}${randBody}`;
+}
+
+// Realistic reasons
+const VN_REASONS = [
+  'Do tò mò và muốn trải nghiệm thử công nghệ mới.',
+  'Được bạn bè và đồng nghiệp giới thiệu nên muốn tìm hiểu.',
+  'Thấy thông tin quảng cáo trên Facebook/Tiktok khá thú vị.',
+  'Muốn tìm hiểu thêm về xu hướng người ảnh hưởng ảo (Virtual Influencer).',
+  'Phục vụ cho nhu cầu học tập, nghiên cứu khoa học của bản thân.',
+  'Tôi cảm thấy chủ đề này khá mới mẻ và có tiềm năng phát triển.',
+  'Do quan tâm đến lĩnh vực du lịch và tiếp thị số.',
+  'Muốn so sánh người ảnh hưởng ảo với người thật xem thế nào.',
+  'Thấy mọi người thảo luận nhiều trên mạng xã hội nên tò mò.',
+  'Do thích khám phá các nội dung du lịch độc đáo.'
+];
+
+// General short text answers
+const VN_GENERAL_ANSWERS = [
+  'Không có ý kiến gì thêm.',
+  'Mọi thứ đều khá tốt và đầy đủ.',
+  'Rất hài lòng với cuộc khảo sát này.',
+  'Mong nghiên cứu của nhóm thành công tốt đẹp.',
+  'Không có gì.',
+  'Bình thường.',
+  'Mình thấy ổn.',
+  'Khảo sát xây dựng rất tốt.',
+  'Chúc nhóm đạt kết quả cao.'
+];
+
+// Dynamic generator depending on rule/question properties
+function generateSmartText(title = '', ruleMode = 'random', gender = 'random') {
+  const titleLower = title.toLowerCase();
+  
+  if (ruleMode === 'text_name' || (ruleMode === 'random' && (titleLower.includes('họ tên') || titleLower.includes('họ và tên') || titleLower.includes('tên của bạn') || titleLower.includes('tên anh/chị') || titleLower.includes('fullname') || titleLower.includes('tên bạn')))) {
+    return generateVietnameseName(gender);
+  }
+  
+  if (ruleMode === 'text_email' || (ruleMode === 'random' && (titleLower.includes('email') || titleLower.includes('thư điện tử') || titleLower.includes('gmail')))) {
+    return generateRandomEmail(gender);
+  }
+  
+  if (ruleMode === 'text_phone' || (ruleMode === 'random' && (titleLower.includes('sđt') || titleLower.includes('số điện thoại') || titleLower.includes('điện thoại') || titleLower.includes('phone') || titleLower.includes('liên hệ')))) {
+    return generateVietnamesePhone();
+  }
+  
+  if (ruleMode === 'text_mssv' || (ruleMode === 'random' && (titleLower.includes('mssv') || titleLower.includes('mã số sinh viên') || titleLower.includes('mã sinh viên') || titleLower.includes('student id')))) {
+    return generateStudentId();
+  }
+  
+  if (ruleMode === 'text_reason' || (ruleMode === 'random' && (titleLower.includes('lý do') || titleLower.includes('vì sao') || titleLower.includes('tại sao') || titleLower.includes('reason')))) {
+    return VN_REASONS[Math.floor(Math.random() * VN_REASONS.length)];
+  }
+  
+  if (ruleMode === 'text_feedback' || (ruleMode === 'random' && (titleLower.includes('góp ý') || titleLower.includes('nhận xét') || titleLower.includes('ý kiến') || titleLower.includes('phản hồi') || titleLower.includes('góp ý khác') || titleLower.includes('feedback') || titleLower.includes('comment')))) {
+    return VN_FEEDBACKS[Math.floor(Math.random() * VN_FEEDBACKS.length)];
+  }
+
+  // General fallback
+  return VN_GENERAL_ANSWERS[Math.floor(Math.random() * VN_GENERAL_ANSWERS.length)];
+}
+
 // Helper to select an option using probability weights
 function selectWeightedOption(options, weights) {
   if (!options || options.length === 0) return '';
@@ -517,13 +624,29 @@ async function runWorkerLoop() {
 
       if (rule.mode === 'fixed') {
         value = rule.fixedValue;
+      } else if (rule.mode === 'custom_list') {
+        const lines = (rule.customListText || '').split('\n').map(l => l.trim()).filter(Boolean);
+        if (lines.length > 0) {
+          value = lines[Math.floor(Math.random() * lines.length)];
+        } else {
+          value = generateSmartText(rule.title, 'random', genderVal);
+        }
       } else if (rule.mode === 'weights') {
         value = selectWeightedOption(rule.options, rule.weights);
       } else if (rule.mode === 'text_name') {
-        // Generate a name based on current gender selection
         value = generateVietnameseName(genderVal);
+      } else if (rule.mode === 'text_email') {
+        value = generateRandomEmail(genderVal);
+      } else if (rule.mode === 'text_phone') {
+        value = generateVietnamesePhone();
+      } else if (rule.mode === 'text_mssv') {
+        value = generateStudentId();
+      } else if (rule.mode === 'text_reason') {
+        value = VN_REASONS[Math.floor(Math.random() * VN_REASONS.length)];
       } else if (rule.mode === 'text_feedback') {
         value = VN_FEEDBACKS[Math.floor(Math.random() * VN_FEEDBACKS.length)];
+      } else if (rule.mode === 'text_general') {
+        value = VN_GENERAL_ANSWERS[Math.floor(Math.random() * VN_GENERAL_ANSWERS.length)];
       } else if (rule.mode === 'checkbox_random') {
         // Checkboxes can select multiple options
         const minSelect = parseInt(rule.minChecked) || 1;
@@ -541,7 +664,7 @@ async function runWorkerLoop() {
         if (rule.options && rule.options.length > 0) {
           value = rule.options[Math.floor(Math.random() * rule.options.length)];
         } else {
-          value = 'Random Text Value';
+          value = generateSmartText(rule.title, 'random', genderVal);
         }
       }
 

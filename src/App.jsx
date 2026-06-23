@@ -78,11 +78,27 @@ export default function App() {
       let fixedValue = '';
       
       // Auto-detect Vietnamese name fields
-      if (titleLower.includes('tên của bạn') || titleLower.includes('họ và tên') || titleLower.includes('họ tên') || titleLower.includes('tên anh/chị')) {
+      if (titleLower.includes('tên của bạn') || titleLower.includes('họ và tên') || titleLower.includes('họ tên') || titleLower.includes('tên anh/chị') || titleLower.includes('fullname') || titleLower.includes('tên bạn')) {
         mode = 'text_name';
       }
+      // Auto-detect Vietnamese email fields
+      else if (titleLower.includes('email') || titleLower.includes('thư điện tử') || titleLower.includes('gmail')) {
+        mode = 'text_email';
+      }
+      // Auto-detect Vietnamese phone fields
+      else if (titleLower.includes('sđt') || titleLower.includes('số điện thoại') || titleLower.includes('điện thoại') || titleLower.includes('phone') || titleLower.includes('liên hệ')) {
+        mode = 'text_phone';
+      }
+      // Auto-detect Vietnamese student ID fields
+      else if (titleLower.includes('mssv') || titleLower.includes('mã số sinh viên') || titleLower.includes('mã sinh viên') || titleLower.includes('student id')) {
+        mode = 'text_mssv';
+      }
+      // Auto-detect Vietnamese reason/why fields
+      else if (titleLower.includes('lý do') || titleLower.includes('vì sao') || titleLower.includes('tại sao') || titleLower.includes('reason')) {
+        mode = 'text_reason';
+      }
       // Auto-detect Vietnamese feedback/comment fields
-      else if (titleLower.includes('góp ý') || titleLower.includes('nhận xét') || titleLower.includes('ý kiến') || titleLower.includes('phản hồi')) {
+      else if (titleLower.includes('góp ý') || titleLower.includes('nhận xét') || titleLower.includes('ý kiến') || titleLower.includes('phản hồi') || titleLower.includes('feedback') || titleLower.includes('comment')) {
         mode = 'text_feedback';
       }
       // Auto-detect Attention Checks
@@ -152,7 +168,8 @@ export default function App() {
           weights: weights,
           fixedValue: fixedValue || (q.options && q.options[0]) || '',
           minChecked: 1,
-          maxChecked: q.options ? Math.min(3, q.options.length) : 1
+          maxChecked: q.options ? Math.min(3, q.options.length) : 1,
+          customListText: ''
         };
       }
     });
@@ -574,7 +591,13 @@ export default function App() {
                             {rule.mode === 'weights' ? 'Tỷ trọng %' : 
                              rule.mode === 'fixed' ? 'Cố định' : 
                              rule.mode === 'text_name' ? 'Tên VN' : 
-                             rule.mode === 'text_feedback' ? 'Ý kiến' : 'Ngẫu nhiên'}
+                             rule.mode === 'text_email' ? 'Email' :
+                             rule.mode === 'text_phone' ? 'SĐT' :
+                             rule.mode === 'text_mssv' ? 'MSSV' :
+                             rule.mode === 'text_reason' ? 'Lý do' :
+                             rule.mode === 'text_feedback' ? 'Ý kiến' :
+                             rule.mode === 'text_general' ? 'Tổng quát' :
+                             rule.mode === 'custom_list' ? 'DS tự chọn' : 'Ngẫu nhiên'}
                           </span>
                           <span style={{ fontWeight: '600', fontSize: '0.95rem', color: 'var(--text-title)' }}>
                             {q.title}
@@ -600,29 +623,23 @@ export default function App() {
                               
                               {/* Text question modes */}
                               {(q.type === 'short_text' || q.type === 'long_text') ? (
-                                <>
-                                  <button 
-                                    className={`btn btn-secondary ${rule.mode === 'text_name' ? 'active' : ''}`}
-                                    style={{ padding: '6px 12px', fontSize: '0.85rem' }}
-                                    onClick={() => handleRuleConfigChange(ruleKey, 'mode', 'text_name')}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <select
+                                    value={rule.mode}
+                                    onChange={(e) => handleRuleConfigChange(ruleKey, 'mode', e.target.value)}
+                                    style={{ padding: '6px 12px', fontSize: '0.85rem', width: '250px', borderRadius: '8px', background: 'var(--bg-card)', color: 'var(--text-main)', border: '1px solid var(--glass-border)' }}
                                   >
-                                    <User size={14} /> Tên tiếng Việt
-                                  </button>
-                                  <button 
-                                    className={`btn btn-secondary ${rule.mode === 'text_feedback' ? 'active' : ''}`}
-                                    style={{ padding: '6px 12px', fontSize: '0.85rem' }}
-                                    onClick={() => handleRuleConfigChange(ruleKey, 'mode', 'text_feedback')}
-                                  >
-                                    <MessageSquare size={14} /> Ý kiến ngẫu nhiên
-                                  </button>
-                                  <button 
-                                    className={`btn btn-secondary ${rule.mode === 'fixed' ? 'active' : ''}`}
-                                    style={{ padding: '6px 12px', fontSize: '0.85rem' }}
-                                    onClick={() => handleRuleConfigChange(ruleKey, 'mode', 'fixed')}
-                                  >
-                                    Cố định văn bản
-                                  </button>
-                                </>
+                                    <option value="random">🔮 Ngẫu nhiên thông minh</option>
+                                    <option value="text_name">👤 Họ tên tiếng Việt</option>
+                                    <option value="text_email">📧 Địa chỉ Email</option>
+                                    <option value="text_phone">📞 Số điện thoại VN</option>
+                                    <option value="text_mssv">🎓 Mã số sinh viên (MSSV)</option>
+                                    <option value="text_reason">💡 Lý do / Tại sao</option>
+                                    <option value="text_feedback">💬 Ý kiến phản hồi khảo sát</option>
+                                    <option value="text_general">📝 Trả lời ngắn thông dụng</option>
+                                    <option value="fixed">📌 Cố định văn bản</option>
+                                  </select>
+                                </div>
                               ) : (
                                 // Multiple choices modes
                                 <>
@@ -664,32 +681,44 @@ export default function App() {
 
                           {/* Mode Config UI details */}
                           {rule.mode === 'fixed' && (
-                            <div style={{ marginTop: '10px' }}>
-                              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Giá trị cố định sẽ nộp:</span>
-                              {(q.type === 'short_text' || q.type === 'long_text') ? (
-                                <input 
-                                  type="text" 
-                                  value={rule.fixedValue}
-                                  onChange={(e) => handleRuleConfigChange(ruleKey, 'fixedValue', e.target.value)}
-                                  placeholder="Nhập chuỗi văn bản..."
-                                  style={{ marginTop: '5px' }}
-                                />
-                              ) : (
-                                <select 
-                                  value={rule.fixedValue}
-                                  onChange={(e) => handleRuleConfigChange(ruleKey, 'fixedValue', e.target.value)}
-                                  style={{ marginTop: '5px' }}
-                                >
-                                  {rule.options && rule.options.map((opt, i) => (
-                                    <option key={i} value={opt}>{opt}</option>
-                                  ))}
-                                  {rule.columns && rule.columns.map((opt, i) => (
-                                    <option key={i} value={opt}>{opt}</option>
-                                  ))}
-                                </select>
-                              )}
-                            </div>
-                          )}
+                             <div style={{ marginTop: '10px' }}>
+                               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Giá trị cố định sẽ nộp:</span>
+                               {(q.type === 'short_text' || q.type === 'long_text') ? (
+                                 <input 
+                                   type="text" 
+                                   value={rule.fixedValue}
+                                   onChange={(e) => handleRuleConfigChange(ruleKey, 'fixedValue', e.target.value)}
+                                   placeholder="Nhập chuỗi văn bản..."
+                                   style={{ marginTop: '5px' }}
+                                 />
+                               ) : (
+                                 <select 
+                                   value={rule.fixedValue}
+                                   onChange={(e) => handleRuleConfigChange(ruleKey, 'fixedValue', e.target.value)}
+                                   style={{ marginTop: '5px' }}
+                                 >
+                                   {(rule.options || []).map(opt => (
+                                     <option key={opt} value={opt}>{opt}</option>
+                                   ))}
+                                 </select>
+                               )}
+                             </div>
+                           )}
+
+                           {rule.mode === 'custom_list' && (
+                             <div style={{ marginTop: '10px' }}>
+                               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', marginBottom: '5px' }}>
+                                 Danh sách các đáp án tự chọn (Mỗi câu trả lời trên một dòng):
+                               </span>
+                               <textarea 
+                                 value={rule.customListText || ''}
+                                 onChange={(e) => handleRuleConfigChange(ruleKey, 'customListText', e.target.value)}
+                                 placeholder="Nhập danh sách các câu trả lời muốn bot chọn ngẫu nhiên...&#10;Ví dụ:&#10;Lil Miquela&#10;Imma&#10;Rozy"
+                                 rows={5}
+                                 style={{ width: '100%', padding: '10px', borderRadius: '8px', fontSize: '0.85rem', background: 'var(--bg-card)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', fontFamily: 'inherit', resize: 'vertical' }}
+                               />
+                             </div>
+                           )}
 
                           {rule.mode === 'checkbox_random' && q.type === 'checkbox' && (
                             <div style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
@@ -760,23 +789,86 @@ export default function App() {
                             </div>
                           )}
 
-                          {rule.mode === 'text_name' && (
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '10px', background: 'rgba(16,185,129,0.05)', padding: '10px', borderRadius: '8px' }}>
-                              <User size={16} style={{ color: 'var(--accent-success)' }} />
-                              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                Hệ thống sẽ tự động ghép Họ + Tên đệm + Tên người Việt Nam ngẫu nhiên dựa trên phân bổ giới tính được chọn ở các trường khác.
-                              </span>
-                            </div>
-                          )}
+                          {rule.mode === 'random' && (q.type === 'short_text' || q.type === 'long_text') && (
+                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '10px', background: 'rgba(99,102,241,0.05)', padding: '10px', borderRadius: '8px' }}>
+                               <Sparkles size={16} style={{ color: 'var(--accent-primary)' }} />
+                               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                 Hệ thống tự động phát hiện loại câu hỏi (Tên, Email, SĐT, MSSV, Lý do, Góp ý) dựa vào tiêu đề để điền dữ liệu thích hợp.
+                               </span>
+                             </div>
+                           )}
 
-                          {rule.mode === 'text_feedback' && (
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '10px', background: 'rgba(16,185,129,0.05)', padding: '10px', borderRadius: '8px' }}>
-                              <MessageSquare size={16} style={{ color: 'var(--accent-success)' }} />
-                              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                Hệ thống sẽ sinh ngẫu nhiên các câu nhận xét khảo sát bằng tiếng Việt thực tế.
-                              </span>
-                            </div>
-                          )}
+                           {rule.mode === 'text_name' && (
+                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '10px', background: 'rgba(16,185,129,0.05)', padding: '10px', borderRadius: '8px' }}>
+                               <User size={16} style={{ color: 'var(--accent-success)' }} />
+                               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                 Hệ thống sẽ tự động ghép Họ + Tên đệm + Tên người Việt Nam ngẫu nhiên dựa trên phân bổ giới tính.
+                               </span>
+                             </div>
+                           )}
+
+                           {rule.mode === 'text_email' && (
+                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '10px', background: 'rgba(16,185,129,0.05)', padding: '10px', borderRadius: '8px' }}>
+                               <Send size={16} style={{ color: 'var(--accent-success)' }} />
+                               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                 Sinh ngẫu nhiên địa chỉ Email hợp lệ theo dạng Họ tên (ví dụ: nguyenvandat345@gmail.com, ueh.edu.vn).
+                               </span>
+                             </div>
+                           )}
+
+                           {rule.mode === 'text_phone' && (
+                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '10px', background: 'rgba(16,185,129,0.05)', padding: '10px', borderRadius: '8px' }}>
+                               <Activity size={16} style={{ color: 'var(--accent-success)' }} />
+                               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                 Sinh ngẫu nhiên số điện thoại di động Việt Nam (các đầu số 090, 098, 035, v.v.).
+                               </span>
+                             </div>
+                           )}
+
+                           {rule.mode === 'text_mssv' && (
+                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '10px', background: 'rgba(16,185,129,0.05)', padding: '10px', borderRadius: '8px' }}>
+                               <Sparkles size={16} style={{ color: 'var(--accent-success)' }} />
+                               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                 Sinh mã số sinh viên ngẫu nhiên (ví dụ định dạng UEH: 3122102xxxx).
+                               </span>
+                             </div>
+                           )}
+
+                           {rule.mode === 'text_reason' && (
+                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '10px', background: 'rgba(16,185,129,0.05)', padding: '10px', borderRadius: '8px' }}>
+                               <HelpCircle size={16} style={{ color: 'var(--accent-success)' }} />
+                               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                 Sinh câu trả lời lý do thực tế (ví dụ: "Do tò mò và muốn trải nghiệm thử công nghệ mới...").
+                               </span>
+                             </div>
+                           )}
+
+                           {rule.mode === 'text_feedback' && (
+                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '10px', background: 'rgba(16,185,129,0.05)', padding: '10px', borderRadius: '8px' }}>
+                               <MessageSquare size={16} style={{ color: 'var(--accent-success)' }} />
+                               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                 Hệ thống sẽ sinh ngẫu nhiên các câu nhận xét khảo sát bằng tiếng Việt thực tế.
+                               </span>
+                             </div>
+                           )}
+
+                           {rule.mode === 'text_general' && (
+                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '10px', background: 'rgba(16,185,129,0.05)', padding: '10px', borderRadius: '8px' }}>
+                               <FileText size={16} style={{ color: 'var(--accent-success)' }} />
+                               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                 Sinh các câu trả lời ngắn thông dụng như "Không có ý kiến gì thêm", "Mọi thứ đều tốt", v.v.
+                               </span>
+                             </div>
+                           )}
+
+                           {rule.mode === 'custom_list' && (
+                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '10px', background: 'rgba(16,185,129,0.05)', padding: '10px', borderRadius: '8px' }}>
+                               <FileText size={16} style={{ color: 'var(--accent-success)' }} />
+                               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                 Bot sẽ tự động chọn ngẫu nhiên một trong các dòng bạn nhập trong danh sách tự chọn bên trên.
+                               </span>
+                             </div>
+                           )}
                         </div>
                       )}
                     </div>

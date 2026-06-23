@@ -9,6 +9,8 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 
 // Color palette for charts
 const CHART_COLORS = ['#6366f1', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
+const API_BASE = `${window.location.protocol}//${window.location.hostname}:5000`;
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('setup'); // 'setup', 'config', 'execution'
   const [formUrl, setFormUrl] = useState('https://docs.google.com/forms/d/e/1FAIpQLSckYUDbyreLwZxOvwC-eQ5DRsqL7M5OtnfeByKmBkxi6ApN0g/viewform');
@@ -40,7 +42,7 @@ export default function App() {
     setParsing(true);
     setParsedForm(null);
     try {
-      const response = await fetch(`http://localhost:5000/api/parse?url=${encodeURIComponent(formUrl)}`);
+      const response = await fetch(`${API_BASE}/api/parse?url=${encodeURIComponent(formUrl)}`);
       const data = await response.json();
       
       if (data.error) {
@@ -171,7 +173,7 @@ export default function App() {
 
   const fetchSessionStatus = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/session-status');
+      const response = await fetch(`${API_BASE}/api/session-status`);
       const data = await response.json();
       if (data.status && data.status !== 'idle') {
         setExecutionStatus(data.status);
@@ -197,7 +199,7 @@ export default function App() {
       sseRef.current.close();
     }
 
-    const eventSource = new EventSource('http://localhost:5000/api/session-progress');
+    const eventSource = new EventSource(`${API_BASE}/api/session-progress`);
     sseRef.current = eventSource;
 
     eventSource.onmessage = (event) => {
@@ -245,7 +247,7 @@ export default function App() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/start-session', {
+      const response = await fetch(`${API_BASE}/api/start-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -277,7 +279,7 @@ export default function App() {
   // Controller Actions
   const handlePauseGeneration = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/pause-session', { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/pause-session`, { method: 'POST' });
       const data = await res.json();
       if (data.success) setExecutionStatus('paused');
     } catch (err) { alert(err.message); }
@@ -285,7 +287,7 @@ export default function App() {
 
   const handleResumeGeneration = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/resume-session', { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/resume-session`, { method: 'POST' });
       const data = await res.json();
       if (data.success) setExecutionStatus('running');
     } catch (err) { alert(err.message); }
@@ -294,7 +296,7 @@ export default function App() {
   const handleStopGeneration = async () => {
     if (confirm('Bạn có chắc muốn hủy phiên chạy này không?')) {
       try {
-        const res = await fetch('http://localhost:5000/api/stop-session', { method: 'POST' });
+        const res = await fetch(`${API_BASE}/api/stop-session`, { method: 'POST' });
         const data = await res.json();
         if (data.success) setExecutionStatus('stopped');
       } catch (err) { alert(err.message); }
